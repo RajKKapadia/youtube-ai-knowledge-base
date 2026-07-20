@@ -1,0 +1,330 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title description">
+  <title id="title">YouTube AI Knowledge Base project process</title>
+  <desc id="description">Architecture diagram showing asynchronous YouTube video ingestion, local transcription and embedding, PostgreSQL and Qdrant storage, semantic search, and optional OpenAI-grounded chat.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A1020"/>
+      <stop offset="0.55" stop-color="#10192D"/>
+      <stop offset="1" stop-color="#0B1222"/>
+    </linearGradient>
+    <linearGradient id="ingestPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111D34" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#0D172A" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="queryPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101C31" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#0B1726" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="cyanCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#153453"/>
+      <stop offset="1" stop-color="#10273E"/>
+    </linearGradient>
+    <linearGradient id="violetCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#312555"/>
+      <stop offset="1" stop-color="#201C3C"/>
+    </linearGradient>
+    <linearGradient id="greenCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#153C3B"/>
+      <stop offset="1" stop-color="#102B2B"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#5B6B87" stroke-width="1" opacity="0.08"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#020617" flood-opacity="0.36"/>
+    </filter>
+    <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3DD9EB"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#52E0A4"/>
+    </marker>
+    <marker id="arrowViolet" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#A78BFA"/>
+    </marker>
+    <style>
+      .title { font: 700 40px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #F8FAFC; letter-spacing: -0.8px; }
+      .subtitle { font: 400 17px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #9FB0C8; }
+      .lane-title { font: 700 15px Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: 2.2px; }
+      .card-title { font: 700 18px Inter, ui-sans-serif, system-ui, sans-serif; fill: #F8FAFC; }
+      .card-copy { font: 400 14px Inter, ui-sans-serif, system-ui, sans-serif; fill: #B7C5D8; }
+      .small { font: 500 12px Inter, ui-sans-serif, system-ui, sans-serif; fill: #91A4BD; }
+      .micro { font: 600 11px Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.4px; }
+      .step-number { font: 700 13px Inter, ui-sans-serif, system-ui, sans-serif; fill: #07111E; }
+      .endpoint { font: 700 12px "SFMono-Regular", Consolas, "Liberation Mono", monospace; fill: #C4F5FA; }
+      .status { font: 600 11px "SFMono-Regular", Consolas, "Liberation Mono", monospace; fill: #B9C7DA; }
+      .footer { font: 500 13px Inter, ui-sans-serif, system-ui, sans-serif; fill: #9FB0C8; }
+      .line-cyan { fill: none; stroke: #3DD9EB; stroke-width: 3; marker-end: url(#arrowCyan); }
+      .line-green { fill: none; stroke: #52E0A4; stroke-width: 3; marker-end: url(#arrowGreen); }
+      .line-violet { fill: none; stroke: #A78BFA; stroke-width: 3; marker-end: url(#arrowViolet); }
+      .line-muted { fill: none; stroke: #59708F; stroke-width: 2; stroke-dasharray: 5 6; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#background)"/>
+  <rect width="1600" height="1000" fill="url(#grid)"/>
+  <circle cx="1420" cy="40" r="260" fill="#236C86" opacity="0.08"/>
+  <circle cx="130" cy="980" r="250" fill="#4E3C94" opacity="0.07"/>
+
+  <g transform="translate(72 54)">
+    <rect x="0" y="2" width="10" height="50" rx="5" fill="#3DD9EB" filter="url(#glowCyan)"/>
+    <text x="30" y="35" class="title">YouTube AI Knowledge Base</text>
+    <text x="30" y="67" class="subtitle">From a public video URL to timestamped semantic search and grounded answers</text>
+  </g>
+
+  <g transform="translate(1120 54)">
+    <rect width="112" height="30" rx="15" fill="#132B38" stroke="#2A7584"/>
+    <circle cx="17" cy="15" r="5" fill="#3DD9EB"/>
+    <text x="30" y="19" class="micro" fill="#BFF8FF">LOCAL AI</text>
+    <rect x="124" width="132" height="30" rx="15" fill="#27203F" stroke="#6956A5"/>
+    <circle cx="141" cy="15" r="5" fill="#A78BFA"/>
+    <text x="154" y="19" class="micro" fill="#E5DEFF">OPTIONAL</text>
+    <rect x="268" width="140" height="30" rx="15" fill="#16302D" stroke="#327266"/>
+    <circle cx="285" cy="15" r="5" fill="#52E0A4"/>
+    <text x="298" y="19" class="micro" fill="#C4FBE1">PERSISTED</text>
+  </g>
+
+  <!-- Ingestion lane -->
+  <rect x="48" y="146" width="1504" height="490" rx="28" fill="url(#ingestPanel)" stroke="#263A58" filter="url(#shadow)"/>
+  <g transform="translate(78 172)">
+    <rect width="154" height="30" rx="15" fill="#122F3E"/>
+    <text x="18" y="20" class="lane-title" fill="#6DE7F3">INGEST &amp; INDEX</text>
+    <text x="174" y="20" class="small">asynchronous background pipeline</text>
+  </g>
+
+  <!-- Status strip -->
+  <g transform="translate(862 166)">
+    <text x="0" y="20" class="small">STATUS</text>
+    <g transform="translate(62 0)">
+      <rect width="92" height="29" rx="14.5" fill="#182438" stroke="#31445E"/>
+      <text x="15" y="19" class="status">pending 0%</text>
+    </g>
+    <path d="M 160 14.5 H 177" class="line-muted"/>
+    <g transform="translate(184 0)">
+      <rect width="130" height="29" rx="14.5" fill="#182438" stroke="#31445E"/>
+      <text x="14" y="19" class="status">downloading 10%</text>
+    </g>
+    <path d="M 320 14.5 H 337" class="line-muted"/>
+    <g transform="translate(344 0)">
+      <rect width="132" height="29" rx="14.5" fill="#182438" stroke="#31445E"/>
+      <text x="14" y="19" class="status">transcribing 30%</text>
+    </g>
+    <path d="M 482 14.5 H 499" class="line-muted"/>
+    <g transform="translate(506 0)">
+      <rect width="119" height="29" rx="14.5" fill="#182438" stroke="#31445E"/>
+      <text x="14" y="19" class="status">chunking 60%</text>
+    </g>
+  </g>
+
+  <!-- Input -->
+  <g transform="translate(78 250)" filter="url(#shadow)">
+    <rect width="216" height="132" rx="18" fill="#141F33" stroke="#334762"/>
+    <circle cx="30" cy="30" r="16" fill="#EF4444"/>
+    <path d="M 25 21 L 25 39 L 39 30 Z" fill="#FFFFFF"/>
+    <text x="56" y="35" class="card-title">YouTube URL</text>
+    <rect x="20" y="58" width="176" height="29" rx="8" fill="#0D1626" stroke="#283A53"/>
+    <text x="32" y="77" class="endpoint">POST /videos</text>
+    <text x="20" y="108" class="card-copy">Public video submitted</text>
+  </g>
+
+  <path d="M 294 316 H 330" class="line-cyan"/>
+
+  <!-- API -->
+  <g transform="translate(330 232)" filter="url(#shadow)">
+    <rect width="240" height="168" rx="18" fill="url(#cyanCard)" stroke="#2B7180"/>
+    <circle cx="31" cy="31" r="17" fill="#3DD9EB"/>
+    <text x="25" y="36" class="step-number">1</text>
+    <text x="58" y="36" class="card-title">FastAPI</text>
+    <text x="22" y="69" class="card-copy">Validate URL and create</text>
+    <text x="22" y="90" class="card-copy">a video record with:</text>
+    <rect x="22" y="108" width="101" height="29" rx="8" fill="#102438" stroke="#317381"/>
+    <text x="35" y="127" class="endpoint">pending · 0%</text>
+    <text x="22" y="155" class="small">Returns HTTP 202 + video_id</text>
+  </g>
+
+  <!-- PostgreSQL initial write -->
+  <path d="M 450 400 V 455" class="line-green"/>
+  <g transform="translate(330 466)" filter="url(#shadow)">
+    <rect width="240" height="116" rx="18" fill="url(#greenCard)" stroke="#37776A"/>
+    <ellipse cx="42" cy="29" rx="19" ry="8" fill="#52E0A4"/>
+    <path d="M 23 29 V 48 C 23 58 61 58 61 48 V 29" fill="#2E8E72"/>
+    <ellipse cx="42" cy="48" rx="19" ry="8" fill="#52E0A4"/>
+    <text x="75" y="35" class="card-title">PostgreSQL</text>
+    <text x="22" y="76" class="card-copy">Video metadata, status,</text>
+    <text x="22" y="97" class="card-copy">progress + transcript chunks</text>
+  </g>
+
+  <path d="M 570 316 H 606" class="line-cyan"/>
+
+  <!-- Queue -->
+  <g transform="translate(606 232)" filter="url(#shadow)">
+    <rect width="222" height="168" rx="18" fill="#18243A" stroke="#40516C"/>
+    <circle cx="31" cy="31" r="17" fill="#FCB95C"/>
+    <text x="25" y="36" class="step-number">2</text>
+    <text x="58" y="36" class="card-title">Redis queue</text>
+    <text x="22" y="70" class="card-copy">Enqueues:</text>
+    <rect x="22" y="84" width="178" height="29" rx="8" fill="#101A2B" stroke="#374A64"/>
+    <text x="34" y="103" class="endpoint">process_video(id)</text>
+    <text x="22" y="141" class="small">Celery broker + result backend</text>
+  </g>
+
+  <path d="M 828 316 H 864" class="line-cyan"/>
+
+  <!-- Worker pipeline -->
+  <g transform="translate(864 216)" filter="url(#shadow)">
+    <rect width="634" height="222" rx="22" fill="#121E32" stroke="#34516F"/>
+    <g transform="translate(20 18)">
+      <circle cx="17" cy="17" r="17" fill="#3DD9EB"/>
+      <text x="11" y="22" class="step-number">3</text>
+      <text x="44" y="22" class="card-title">Celery worker · processing pipeline</text>
+    </g>
+
+    <g transform="translate(20 68)">
+      <rect width="134" height="124" rx="15" fill="#18273C" stroke="#3C536E"/>
+      <text x="15" y="27" class="micro" fill="#74EAF4">DOWNLOAD · 10%</text>
+      <text x="15" y="56" class="card-copy">yt-dlp</text>
+      <text x="15" y="78" class="card-copy">Deno + FFmpeg</text>
+      <text x="15" y="105" class="small">audio + metadata</text>
+    </g>
+    <path d="M 158 130 H 173" class="line-cyan"/>
+    <g transform="translate(178 68)">
+      <rect width="134" height="124" rx="15" fill="#18273C" stroke="#3C536E"/>
+      <text x="15" y="27" class="micro" fill="#74EAF4">TRANSCRIBE · 30%</text>
+      <text x="15" y="58" class="card-copy">faster-whisper</text>
+      <text x="15" y="82" class="small">timestamped</text>
+      <text x="15" y="101" class="small">speech segments</text>
+    </g>
+    <path d="M 316 130 H 331" class="line-cyan"/>
+    <g transform="translate(336 68)">
+      <rect width="134" height="124" rx="15" fill="#18273C" stroke="#3C536E"/>
+      <text x="15" y="27" class="micro" fill="#74EAF4">CHUNK · 60%</text>
+      <text x="15" y="56" class="card-copy">10 segments</text>
+      <text x="15" y="78" class="card-copy">2 overlap</text>
+      <text x="15" y="105" class="small">keeps timestamps</text>
+    </g>
+    <path d="M 474 130 H 489" class="line-cyan"/>
+    <g transform="translate(494 68)">
+      <rect width="120" height="124" rx="15" fill="#173039" stroke="#36737A"/>
+      <text x="13" y="27" class="micro" fill="#74EAF4">EMBED · 75%</text>
+      <text x="13" y="56" class="card-copy">FastEmbed</text>
+      <text x="13" y="78" class="small">BGE small</text>
+      <text x="13" y="101" class="small">384 dimensions</text>
+    </g>
+  </g>
+
+  <!-- Storage split -->
+  <path d="M 1260 438 V 473 H 1040 V 496" class="line-green"/>
+  <path d="M 1360 438 V 496" class="line-green"/>
+
+  <g transform="translate(886 496)" filter="url(#shadow)">
+    <rect width="300" height="86" rx="17" fill="url(#greenCard)" stroke="#37776A"/>
+    <circle cx="31" cy="30" r="16" fill="#52E0A4"/>
+    <path d="M 24 30 H 38 M 31 23 V 37" stroke="#0B1D1B" stroke-width="3" stroke-linecap="round"/>
+    <text x="58" y="34" class="card-title">PostgreSQL chunks</text>
+    <text x="22" y="65" class="card-copy">text · indexes · start/end timestamps</text>
+  </g>
+
+  <g transform="translate(1210 496)" filter="url(#shadow)">
+    <rect width="288" height="86" rx="17" fill="url(#greenCard)" stroke="#37776A"/>
+    <circle cx="31" cy="30" r="16" fill="#52E0A4"/>
+    <path d="M 22 34 L 29 23 L 40 27 L 38 39 L 26 41 Z" fill="#0D2925"/>
+    <text x="58" y="34" class="card-title">Qdrant vectors</text>
+    <text x="22" y="65" class="card-copy">vector + video_id + text + timestamps</text>
+  </g>
+
+  <g transform="translate(604 466)">
+    <rect width="224" height="116" rx="18" fill="#142135" stroke="#344A66" stroke-dasharray="5 5"/>
+    <text x="22" y="33" class="micro" fill="#A9B8CC">COMPLETION</text>
+    <text x="22" y="61" class="card-copy">status = completed</text>
+    <text x="22" y="82" class="card-copy">progress = 100%</text>
+    <text x="22" y="103" class="small">temporary audio removed</text>
+  </g>
+  <path d="M 864 524 H 828" class="line-green"/>
+
+  <!-- Query lane -->
+  <rect x="48" y="664" width="1504" height="268" rx="28" fill="url(#queryPanel)" stroke="#263A58" filter="url(#shadow)"/>
+  <g transform="translate(78 690)">
+    <rect width="202" height="30" rx="15" fill="#162C2E"/>
+    <text x="18" y="20" class="lane-title" fill="#76E8B6">RETRIEVE &amp; ANSWER</text>
+    <text x="222" y="20" class="small">available after ingestion reaches completed</text>
+  </g>
+
+  <!-- Query input -->
+  <g transform="translate(78 756)" filter="url(#shadow)">
+    <rect width="194" height="116" rx="18" fill="#141F33" stroke="#334762"/>
+    <circle cx="30" cy="30" r="16" fill="#52E0A4"/>
+    <path d="M 23 29 C 23 23 28 20 33 20 C 39 20 43 24 43 29 C 43 34 39 38 34 38 H 27 L 21 43 L 23 35 Z" fill="#0C2721"/>
+    <text x="56" y="35" class="card-title">User query</text>
+    <text x="20" y="70" class="endpoint">/search</text>
+    <text x="92" y="70" class="endpoint">/chat</text>
+    <text x="20" y="96" class="small">query or question + top_k</text>
+  </g>
+
+  <path d="M 272 814 H 306" class="line-green"/>
+
+  <!-- Retrieval -->
+  <g transform="translate(306 744)" filter="url(#shadow)">
+    <rect width="220" height="140" rx="18" fill="url(#cyanCard)" stroke="#2B7180"/>
+    <text x="20" y="31" class="micro" fill="#74EAF4">1 · EMBED QUERY</text>
+    <text x="20" y="62" class="card-title">FastEmbed</text>
+    <text x="20" y="91" class="card-copy">Adds the "query:" prefix</text>
+    <text x="20" y="116" class="small">same local BGE model</text>
+  </g>
+  <path d="M 526 814 H 560" class="line-green"/>
+
+  <g transform="translate(560 744)" filter="url(#shadow)">
+    <rect width="230" height="140" rx="18" fill="url(#greenCard)" stroke="#37776A"/>
+    <text x="20" y="31" class="micro" fill="#76E8B6">2 · VECTOR SEARCH</text>
+    <text x="20" y="62" class="card-title">Qdrant</text>
+    <text x="20" y="91" class="card-copy">Cosine similarity</text>
+    <rect x="20" y="105" width="190" height="25" rx="7" fill="#102823" stroke="#347064"/>
+    <text x="33" y="122" class="endpoint" fill="#BDF9DA">filter: video_id</text>
+  </g>
+  <path d="M 790 814 H 824" class="line-green"/>
+
+  <g transform="translate(824 744)" filter="url(#shadow)">
+    <rect width="236" height="140" rx="18" fill="#17283A" stroke="#3C596F"/>
+    <text x="20" y="31" class="micro" fill="#76E8B6">3 · RETRIEVE</text>
+    <text x="20" y="62" class="card-title">Relevant chunks</text>
+    <text x="20" y="91" class="card-copy">text + score + time range</text>
+    <text x="20" y="116" class="small">timestamped YouTube source URL</text>
+  </g>
+
+  <!-- Outcome branch -->
+  <path d="M 1060 792 H 1100" class="line-green"/>
+  <path d="M 1080 792 V 854 H 1100" class="line-violet"/>
+  <circle cx="1080" cy="792" r="5" fill="#E2E8F0"/>
+
+  <g transform="translate(1100 738)" filter="url(#shadow)">
+    <rect width="410" height="68" rx="17" fill="url(#greenCard)" stroke="#37776A"/>
+    <rect x="16" y="17" width="80" height="34" rx="9" fill="#1E5C4D"/>
+    <text x="28" y="38" class="endpoint" fill="#D1FAE5">/search</text>
+    <text x="114" y="29" class="card-title">Timestamped results</text>
+    <text x="114" y="50" class="small">fully local retrieval · no OpenAI key needed</text>
+  </g>
+
+  <g transform="translate(1100 824)" filter="url(#shadow)">
+    <rect width="410" height="82" rx="17" fill="url(#violetCard)" stroke="#6E5AA8"/>
+    <rect x="16" y="24" width="80" height="34" rx="9" fill="#483677"/>
+    <text x="32" y="45" class="endpoint" fill="#EEE9FF">/chat</text>
+    <text x="114" y="31" class="card-title">OpenAI Responses API</text>
+    <text x="114" y="53" class="card-copy">retrieved context → grounded answer</text>
+    <text x="114" y="72" class="small">optional · returns answer + timestamped sources</text>
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(70 958)">
+    <circle cx="8" cy="0" r="5" fill="#3DD9EB"/>
+    <text x="22" y="5" class="footer">Ingestion and semantic search use local models. OpenAI is called only by the optional </text>
+    <text x="690" y="5" class="endpoint" fill="#D9D0FF">POST /videos/{id}/chat</text>
+    <text x="878" y="5" class="footer"> endpoint.</text>
+  </g>
+</svg>
