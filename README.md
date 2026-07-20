@@ -398,35 +398,3 @@ If you change the embedding model to one with a different vector dimension, upda
 docker compose down -v
 docker compose up --build
 ```
-
-## YouTube
-
-This demo uses `yt-dlp` and FFmpeg to extract audio from public videos. YouTube extraction behavior can change, and some videos may require authentication/cookies or may not be downloadable.
-
-Only download/process videos when you have the right or permission to do so, and follow YouTube's applicable terms and content rights.
-
----
-
-# Suggested recording flow
-
-1. Show `docker compose up --build`.
-2. Open `/docs`.
-3. Call `POST /videos`.
-4. Show the video row becoming `pending`.
-5. Explain Celery + Redis.
-6. Show worker logs: downloading -> transcribing.
-7. Explain Whisper `segments`.
-8. Open `chunking.py` and show:
-   - 10 segments per chunk
-   - first segment start
-   - last segment end
-   - 2-segment overlap
-9. Show PostgreSQL `video_chunks`.
-10. Explain local embedding generation.
-11. Show Qdrant dashboard.
-12. Call `/search`.
-13. Open one returned `source_url` to jump to the timestamp.
-14. Optionally call `/chat`.
-15. Delete the video and explain cleanup.
-
-This keeps the video backend-focused and lets the implementation tell the story.
