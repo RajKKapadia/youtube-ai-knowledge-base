@@ -15,7 +15,6 @@ from app.schemas import (
     ChatResponse,
     SearchRequest,
     SearchResponse,
-    SearchResult,
     VideoCreate,
     VideoCreateResponse,
     VideoResponse,
@@ -41,7 +40,9 @@ def get_video_or_404(db: Session, video_id: uuid.UUID) -> Video:
     response_model=VideoCreateResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
-def create_video(payload: VideoCreate, db: Session = Depends(get_db)) -> VideoCreateResponse:
+def create_video(
+    payload: VideoCreate, db: Session = Depends(get_db)
+) -> VideoCreateResponse:
     video = Video(
         youtube_url=str(payload.youtube_url),
         status="pending",
@@ -62,11 +63,7 @@ def create_video(payload: VideoCreate, db: Session = Depends(get_db)) -> VideoCr
 
 @router.get("", response_model=list[VideoResponse])
 def list_videos(db: Session = Depends(get_db)) -> list[Video]:
-    return list(
-        db.scalars(
-            select(Video).order_by(Video.created_at.desc())
-        ).all()
-    )
+    return list(db.scalars(select(Video).order_by(Video.created_at.desc())).all())
 
 
 @router.get("/{video_id}", response_model=VideoResponse)
@@ -161,8 +158,7 @@ def chat(
             "Be concise and factual."
         ),
         input=(
-            f"Question:\n{payload.question}\n\n"
-            f"Video transcript context:\n{context}"
+            f"Question:\n{payload.question}\n\nVideo transcript context:\n{context}"
         ),
     )
 

@@ -5,9 +5,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "YouTube AI Knowledge Base"
-    database_url: str = "postgresql+psycopg://postgres:postgres@postgres:5432/youtube_kb"
-    redis_url: str = "redis://redis:6379/0"
-    qdrant_url: str = "http://qdrant:6333"
+    database_url: str = (
+        "postgresql+psycopg://postgres:password@localhost:5432/youtube_kb"
+    )
+    redis_url: str = "redis://localhost:6379/0"
+    qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "youtube_video_chunks"
 
     embedding_model: str = "BAAI/bge-small-en-v1.5"

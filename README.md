@@ -19,9 +19,6 @@ The project has two connected paths:
    retrieved context to the OpenAI Responses API and returns a grounded answer
    with the same sources.
 
-The editable diagram source is
-[`docs/assets/project-process.svg`](docs/assets/project-process.svg).
-
 ## Services
 
 - **FastAPI** — HTTP API
