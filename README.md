@@ -26,7 +26,7 @@ The project has two connected paths:
 - **Redis** — Celery broker/result backend
 - **PostgreSQL** — videos and transcript chunks
 - **Qdrant** — vector database
-- **yt-dlp (with its default EJS dependencies) + Deno + FFmpeg** — YouTube audio extraction
+- **yt-dlp + BgUtils PO-token provider + Deno + FFmpeg** — YouTube audio extraction
 - **faster-whisper** — local transcription
 - **FastEmbed** — local embeddings
 - **OpenAI** — optional generated answer for `/chat`; `/search` does not require it
@@ -63,7 +63,7 @@ Qdrant uses **one collection for all video chunks**. Every vector has `video_id`
 
 ---
 
-# Run locally
+# Run with Docker
 
 ## 1. Requirements
 
@@ -97,6 +97,7 @@ docker compose up --build
 
 That single command starts:
 
+- BgUtils PO-token provider
 - PostgreSQL
 - Redis
 - Qdrant
@@ -122,6 +123,126 @@ Qdrant dashboard:
 ```text
 http://localhost:6333/dashboard
 ```
+
+The PO-token provider is private to the Compose network. The worker waits for
+its health check before it starts processing videos.
+
+---
+
+# Run without Docker
+
+The API and worker are separate processes. A native run therefore needs local
+PostgreSQL, Redis, Qdrant, FFmpeg, and the BgUtils PO-token server in addition
+to Python.
+
+## 1. Install host requirements
+
+- Python 3.12.11 or newer
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- PostgreSQL 16 or newer
+- Redis 7 or newer
+- [Qdrant](https://qdrant.tech/documentation/guides/installation/)
+- FFmpeg
+- Git
+- Node.js 22 or newer
+
+On Ubuntu or Debian, PostgreSQL, Redis, FFmpeg, and Git can be installed with:
+
+```bash
+sudo apt update
+sudo apt install postgresql redis-server ffmpeg git
+sudo systemctl enable --now postgresql redis-server
+```
+
+Install Node.js 22 using your preferred Node version manager or the official
+Node.js packages. Install the native Qdrant binary from its releases, extract
+it, and start it in a separate terminal:
+
+```bash
+./qdrant
+```
+
+Qdrant listens on `http://localhost:6333` by default.
+
+## 2. Create the PostgreSQL database
+
+The example environment uses the `postgres` role with password `postgres`:
+
+```bash
+sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+sudo -u postgres createdb -O postgres youtube_kb
+```
+
+Skip the `createdb` command if `youtube_kb` already exists. For a different
+role, password, host, or database, update `DATABASE_URL` in `.env`.
+
+## 3. Install the Python environment
+
+From this repository:
+
+```bash
+cp .env.example .env
+uv sync
+```
+
+The example file uses `localhost` for native PostgreSQL, Redis, Qdrant, and the
+PO-token server. Docker Compose overrides those hosts with Compose service names
+without changing `.env`.
+
+## 4. Build and start the PO-token server
+
+Clone the provider beside this repository so its generated files do not enter
+this Git worktree:
+
+```bash
+git clone --single-branch --branch 1.3.1 \
+  https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git \
+  ../bgutil-ytdlp-pot-provider
+cd ../bgutil-ytdlp-pot-provider/server
+npm ci
+npx tsc
+node build/main.js
+```
+
+Leave that terminal running. The server listens on `http://127.0.0.1:4416`.
+The Python plugin itself is installed by `uv sync`.
+
+## 5. Run database migrations
+
+Back in this repository:
+
+```bash
+uv run alembic upgrade head
+```
+
+## 6. Start the API
+
+In one terminal:
+
+```bash
+uv run run.py
+```
+
+The equivalent explicit command is:
+
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## 7. Start the worker
+
+In another terminal:
+
+```bash
+uv run celery -A app.celery_app.celery_app worker \
+  --loglevel=info \
+  --concurrency=1
+```
+
+The complete native run has six active components: PostgreSQL, Redis, Qdrant,
+the PO-token server, and the two application processes (API and worker). Open
+`http://localhost:8000/docs`, submit a video, and keep the worker terminal open
+to see processing warnings or failures.
 
 ---
 
@@ -331,6 +452,40 @@ docker compose down -v
 ---
 
 # Configuration notes
+
+## YouTube downloads and PO tokens
+
+YouTube increasingly requires Proof-of-Origin tokens for media transfers. This
+project installs the BgUtils yt-dlp plugin and uses the token-backed `mweb`
+client by default:
+
+```env
+YOUTUBE_PLAYER_CLIENT=mweb
+YOUTUBE_POT_PROVIDER_URL=http://127.0.0.1:4416
+YOUTUBE_FORMAT=best[acodec!=none][vcodec!=none][height<=360]/bestaudio/best
+YOUTUBE_DOWNLOAD_RETRIES=3
+```
+
+Docker Compose overrides the provider URL to `http://pot-provider:4416` and
+starts the matching `brainicism/bgutil-ytdlp-pot-provider:1.3.1` service.
+Native runs must start the provider server as described above.
+
+The format selector prefers a low-resolution progressive stream containing
+both audio and video. FFmpeg immediately extracts its audio to WAV. This uses
+slightly more bandwidth than an audio-only format, but avoids the audio-only
+Google Video URLs that are commonly rejected with HTTP 403; `bestaudio/best`
+remains the fallback when a progressive stream is unavailable.
+
+If processing fails at `downloading` with a provider or HTTP 403 warning, check:
+
+```bash
+docker compose ps pot-provider
+docker compose logs pot-provider worker
+```
+
+For a native run, confirm `http://127.0.0.1:4416/ping` is reachable and that the
+provider terminal is still running. Personal YouTube cookies are not required
+for ordinary public videos and are intentionally not configured.
 
 ## Temporary data and model cache
 

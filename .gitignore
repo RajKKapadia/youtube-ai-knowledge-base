@@ -10,3 +10,5 @@ build/
 
 .agents/
 .codex/
+.ruff_cache
+

@@ -16,6 +16,8 @@ anyio==4.14.2
     #   watchfiles
 av==18.0.0
     # via faster-whisper
+bgutil-ytdlp-pot-provider==1.3.1
+    # via youtube-ai-knowledge-base
 billiard==4.2.4
     # via celery
 brotli==1.2.0 ; implementation_name == 'cpython' and sys_platform != 'ios'
@@ -186,6 +188,7 @@ requests==2.34.2
     # via
     #   fastembed
     #   yt-dlp
+ruff==0.15.22
 setuptools==83.0.0
     # via ctranslate2
 six==1.17.0

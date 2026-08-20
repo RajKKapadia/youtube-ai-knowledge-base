@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     data_dir: str = "/tmp/youtube-ai-knowledge-base/videos"
     model_cache_dir: str = "/tmp/youtube-ai-knowledge-base/models"
 
+    youtube_player_client: str = "mweb"
+    youtube_pot_provider_url: str = "http://127.0.0.1:4416"
+    youtube_format: str = "best[acodec!=none][vcodec!=none][height<=360]/bestaudio/best"
+    youtube_download_retries: int = 3
+
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.5"
 

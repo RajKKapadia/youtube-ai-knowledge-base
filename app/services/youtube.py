@@ -1,9 +1,32 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
 import yt_dlp
 
 from app.config import settings
+
+
+logger = logging.getLogger(__name__)
+
+
+class YtDlpLogger:
+    """Route yt-dlp messages through the worker's application logger."""
+
+    def debug(self, message: str) -> None:
+        if message.startswith("[debug] "):
+            logger.debug(message)
+        else:
+            logger.info(message)
+
+    def info(self, message: str) -> None:
+        logger.info(message)
+
+    def warning(self, message: str) -> None:
+        logger.warning(message)
+
+    def error(self, message: str) -> None:
+        logger.error(message)
 
 
 @dataclass(slots=True)
@@ -21,11 +44,27 @@ def download_youtube_audio(video_id: str, youtube_url: str) -> DownloadedVideo:
     output_template = str(video_dir / "source.%(ext)s")
 
     ydl_options = {
-        "format": "bestaudio/best",
+        # Progressive mweb streams are more reliable than audio-only CDN URLs on
+        # IPs where YouTube rejects large audio-only transfers with HTTP 403.
+        # FFmpeg extracts the audio after download, so video quality is irrelevant.
+        "format": settings.youtube_format,
         "outtmpl": output_template,
         "noplaylist": True,
         "quiet": True,
-        "no_warnings": True,
+        "no_warnings": False,
+        "noprogress": True,
+        "logger": YtDlpLogger(),
+        "retries": settings.youtube_download_retries,
+        "fragment_retries": settings.youtube_download_retries,
+        "extractor_retries": settings.youtube_download_retries,
+        "extractor_args": {
+            "youtube": {
+                "player_client": [settings.youtube_player_client],
+            },
+            "youtubepot-bgutilhttp": {
+                "base_url": [settings.youtube_pot_provider_url],
+            },
+        },
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
